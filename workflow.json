@@ -1,0 +1,519 @@
+{
+  "name": "kitchen-assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-home-assistant",
+        "options": {}
+      },
+      "id": "88acb6f3-4135-4567-b91a-8614cd6dcc88",
+      "name": "WhatsApp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -1860,
+        -160
+      ],
+      "webhookId": "250641be-15d5-4bce-914c-ccc86d375616"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.Body }}\n\n\n",
+        "options": {
+          "systemMessage": "=You are a smart, friendly home assistant that helps users manage their pantry, meals, and nutrition using Notion databases. You interact via WhatsApp and always respond with short, helpful, emoji-friendly messages.\n\n⏰ You operate in IST (Asia/Kolkata) timezone.\n\n---\n\n🎯 Capabilities:\n\n- 📦 Add or update items in the pantry inventory\n- 📉 Deduct ingredients from inventory when meals are logged\n- 📋 List current pantry items\n- 🍳 Suggest meals based on:\n  - What’s in stock\n  - Protein content (g)\n  - Calorie content (kcal)\n- 🧮 Track macronutrients and calories using a Nutrition Tracker\n\n---\n\n🛠️ Tools:\n\n- `Inventory` (google sheet):  \n  Fields: `Item`, `Quantity`, `Unit`\n\n\n- `Nutrition Tracker` (google sheet):  \n  Fields: 'Food', 'Protein (g)', 'Fat (g)', 'Carbs (g)', 'Fibre (g)', 'Calories', 'Date'\n\n- Memory: Retains recent user history (e.g., meals eaten, items added)\n\n- WhatsApp: Respond to all requests in WhatsApp-friendly format\n\n---\n\n📦 Inventory Management:\n\n- “Add 1 kg rice” → add or update inventory quantity  \n- “I had 3 eggs” → subtract 3 from eggs in inventory  \n  → If item runs out, mark it as “Out of stock”\n\n✅ Example:  \n> Added 1 kg rice 🍚 to your pantry!  \n> You now have 2 kg rice.\n\n📉 Example:  \n> Logged 3 🥚 eggs eaten for breakfast.  \n> Remaining: 27 eggs.\n\n---\n\n🍽️ Recipe Suggestions:\n\n- When the user says:  \n  - “What can I eat for breakfast?”  \n  - “Suggest a high protein dinner under 500 kcal”\n\n→ Do this:\n\n1. Check inventory and match available ingredients  \n2. Rank by highest protein content  \n3. Filter by calorie range if mentioned  \n4. Suggest top 1–2 recipes with clear formatting\n\n✅ Example Reply:\n> 🍳 Try “Oats Paneer Bowl”  \n> 🥚 28g Protein | 🔥 410 kcal  \n> Uses: oats, paneer, green gram  \n> You have all ingredients!\n\n---\n\n🥗 Nutrition Logging:\n\n- After meals are logged (e.g., “I had scrambled eggs”):  \n  → Cross-reference with `Recipes` to get macros  \n  → Subtract ingredients from `Inventory`  \n  → Log protein + calories to `Nutrition Tracker`\n\n✅ Example:\n> Logged “Scrambled Eggs” for lunch 🍳  \n> Protein: 22g | Calories: 310  \n> Ingredients updated in pantry ✅\n\n---\n\n📝 Guidelines:\n\n- Keep replies under 500 characters\n- Always use WhatsApp-friendly text\n- Use relevant emojis (sparingly)\n- Never return code, JSON, or logs\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -1120,
+        -160
+      ],
+      "id": "92104649-76ab-4408-bb38-29015d567259",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -1480,
+        80
+      ],
+      "id": "a1c34f27-0977-4984-86b6-9d392a0b5e6b",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "WPIz0veKPD9HH4MW",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.Body }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1320,
+        80
+      ],
+      "id": "faf6a36d-a771-40aa-b94b-de53a1126c7f",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.twilio.com/2010-04-01/Accounts/AC38676c3af4048569ddaffe39a73162e3/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "whatsapp:+14155238886"
+            },
+            {
+              "name": "To",
+              "value": "whatsapp:+919597271871"
+            },
+            {
+              "name": "Body",
+              "value": "= {{ $json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -580,
+        -160
+      ],
+      "id": "acc8de91-220c-4b98-8b73-865cca7e96db",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "xzxgkRfrouHZ65uJ",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Append or update row in the inventory table",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZEJKiXItrJM5jBwWeiB1YyQPIsIMjh_odRUPiUVZdb8",
+          "mode": "list",
+          "cachedResultName": "Grocery Inventory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZEJKiXItrJM5jBwWeiB1YyQPIsIMjh_odRUPiUVZdb8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Inventory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZEJKiXItrJM5jBwWeiB1YyQPIsIMjh_odRUPiUVZdb8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Ingredient": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Ingredient__using_to_match_', ``, 'string') }}",
+            "Quantity": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Quantity', ``, 'string') }}",
+            "Price": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Price', ``, 'string') }}",
+            "Unit Price": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Unit_Price', ``, 'string') }}",
+            "Unit": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Unit', ``, 'string') }}",
+            "Date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Date', `Convert the time format so it looks like this: \"dd-mm-yyyy hh:mm\"\"`, 'string') }}"
+          },
+          "matchingColumns": [
+            "Ingredient"
+          ],
+          "schema": [
+            {
+              "id": "Ingredient",
+              "displayName": "Ingredient",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Quantity",
+              "displayName": "Quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Unit",
+              "displayName": "Unit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Price",
+              "displayName": "Price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Unit Price",
+              "displayName": "Unit Price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.6,
+      "position": [
+        -1160,
+        80
+      ],
+      "id": "6071f84d-5e8a-4e0d-8978-f4cd2c865125",
+      "name": "Update Inventory",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FwakJkGHs9IM6Xkx",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Search the inventory ",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZEJKiXItrJM5jBwWeiB1YyQPIsIMjh_odRUPiUVZdb8",
+          "mode": "list",
+          "cachedResultName": "Grocery Inventory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZEJKiXItrJM5jBwWeiB1YyQPIsIMjh_odRUPiUVZdb8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Inventory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZEJKiXItrJM5jBwWeiB1YyQPIsIMjh_odRUPiUVZdb8/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.6,
+      "position": [
+        -1000,
+        80
+      ],
+      "id": "c3013233-bcde-40b6-b21f-b47a2db6cf2c",
+      "name": "Search inventory",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FwakJkGHs9IM6Xkx",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Add or update the nutrition tracker",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZEJKiXItrJM5jBwWeiB1YyQPIsIMjh_odRUPiUVZdb8",
+          "mode": "list",
+          "cachedResultName": "Grocery Inventory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZEJKiXItrJM5jBwWeiB1YyQPIsIMjh_odRUPiUVZdb8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1206117817,
+          "mode": "list",
+          "cachedResultName": "Nutrition tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZEJKiXItrJM5jBwWeiB1YyQPIsIMjh_odRUPiUVZdb8/edit#gid=1206117817"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Food": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Food', ``, 'string') }}",
+            "Protein (g)": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Protein__g_', ``, 'string') }}",
+            "Fat (g)": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Fat__g_', ``, 'string') }}",
+            "Carbs (g)": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Carbs__g_', ``, 'string') }}",
+            "Fibre (g)": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Fibre__g_', ``, 'string') }}",
+            "Calories": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Calories', ``, 'string') }}",
+            "Date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Date', `Convert the time format so it looks like this: \"dd-mm-yyyy hh:mm\"\"`, 'string') }}"
+          },
+          "matchingColumns": [
+            "Food"
+          ],
+          "schema": [
+            {
+              "id": "Food",
+              "displayName": "Food",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Protein (g)",
+              "displayName": "Protein (g)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fat (g)",
+              "displayName": "Fat (g)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Carbs (g)",
+              "displayName": "Carbs (g)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fibre (g)",
+              "displayName": "Fibre (g)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Calories",
+              "displayName": "Calories",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.6,
+      "position": [
+        -840,
+        80
+      ],
+      "id": "521530e8-b7ae-45a7-987e-54b1a061d5fb",
+      "name": "Add/update Nutrition tracker",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FwakJkGHs9IM6Xkx",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Search the nutrition tracker",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZEJKiXItrJM5jBwWeiB1YyQPIsIMjh_odRUPiUVZdb8",
+          "mode": "list",
+          "cachedResultName": "Grocery Inventory",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZEJKiXItrJM5jBwWeiB1YyQPIsIMjh_odRUPiUVZdb8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1206117817,
+          "mode": "list",
+          "cachedResultName": "Nutrition tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZEJKiXItrJM5jBwWeiB1YyQPIsIMjh_odRUPiUVZdb8/edit#gid=1206117817"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.6,
+      "position": [
+        -660,
+        80
+      ],
+      "id": "bc69c752-2d10-4e22-893b-2c589ca94a20",
+      "name": "Add/update Nutrition tracker1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FwakJkGHs9IM6Xkx",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WhatsApp Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Inventory": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search inventory": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add/update Nutrition tracker": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add/update Nutrition tracker1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e90e444f-6f8e-455f-bf78-6044a3017443",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ad0e857d2c9db5f907b9a141627a26b2261d542528a6318c61332afbe50eb445"
+  },
+  "id": "UZaN6K6nH1llCept",
+  "tags": []
+}
