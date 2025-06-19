@@ -64,9 +64,6 @@ ngrok http 5678
 5. Connect Twilio webhook to:
 https://<your-ngrok-subdomain>.ngrok.io/webhook/whatsapp-home-assistant
 
-yaml
-Copy
-Edit
 
 ---
 
