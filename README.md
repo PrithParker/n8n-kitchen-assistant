@@ -61,10 +61,6 @@ An AI-powered smart home assistant that works over WhatsApp! Built with:
    - Twilio WhatsApp sandbox (or live)
 4. Use ngrok to expose webhook:
 ngrok http 5678
-
-css
-Copy
-Edit
 5. Connect Twilio webhook to:
 https://<your-ngrok-subdomain>.ngrok.io/webhook/whatsapp-home-assistant
 
