@@ -88,6 +88,3 @@ Want to connect? Drop me a DM on LinkedIn or follow my projects 🚀
 
 ---
 
-## 📜 License
-
-MIT
