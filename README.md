@@ -46,7 +46,8 @@ An AI-powered smart home assistant that works over WhatsApp! Built with:
 
 - `workflow.json` – n8n workflow export (can be imported into your n8n instance)
 - `README.md` – this file
-- *(Optional: screenshots or GIFs coming soon)*
+![image](https://github.com/user-attachments/assets/c9c7b63d-abdc-4354-80e2-986fdc80c6f3)
+
 
 ---
 
